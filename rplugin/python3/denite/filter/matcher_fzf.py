@@ -31,10 +31,6 @@ class Filter(Base):
             # fzf installation check
             ext = '.exe' if context['is_windows'] else ''
             if globruntime(context['runtimepath'], 'bin/fzf' + ext):
-                # Add path
-                sys.path.append(os.path.dirname(
-                    globruntime(context['runtimepath'],
-                                'bin/fzf' + ext)[0]))
                 self.__initialized = True
             else:
                 error(self.vim, 'matcher_fzf: bin/fzf' + ext +
