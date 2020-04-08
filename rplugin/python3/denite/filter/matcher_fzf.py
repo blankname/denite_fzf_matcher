@@ -9,6 +9,7 @@ from denite.util import globruntime, error, convert2fuzzy_pattern
 import sys
 import os
 from subprocess import Popen, PIPE
+from shutil import which
 
 
 class Filter(Base):
@@ -30,7 +31,7 @@ class Filter(Base):
         if not self.__initialized:
             # fzf installation check
             ext = '.exe' if context['is_windows'] else ''
-            if globruntime(context['runtimepath'], 'bin/fzf' + ext):
+            if which('fzf') or globruntime(context['runtimepath'], 'bin/fzf' + ext):
                 self.__initialized = True
             else:
                 error(self.vim, 'matcher_fzf: bin/fzf' + ext +
