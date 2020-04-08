@@ -45,7 +45,7 @@ class Filter(Base):
                 error(self.vim, 'matcher_fzf: You must install/build' +
                       ' fzf.')
                 self.__disabled = True
-                return []
+                return context['candidates']
 
         fzf_result = self._get_fzf_result(context['candidates'],
                                           context['input'],
