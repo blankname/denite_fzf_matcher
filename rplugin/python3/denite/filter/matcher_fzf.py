@@ -21,6 +21,7 @@ class Filter(Base):
         self.description = 'fzf matcher'
 
         self.__initialized = False
+        self.__fzf_bin = None
         self.__disabled = False
 
     def filter(self, context):
@@ -29,13 +30,18 @@ class Filter(Base):
             return context['candidates']
 
         if not self.__initialized:
-            # fzf installation check
-            ext = '.exe' if context['is_windows'] else ''
-            if which('fzf') or globruntime(context['runtimepath'], 'bin/fzf' + ext):
+            # Try to find the fzf binary
+            fzf_bin = which('fzf')
+            if not fzf_bin:
+                ext = '.exe' if context['is_windows'] else ''
+                rtp_matches = globruntime(context['runtimepath'], 'bin/fzf' + ext)
+                fzf_bin = next(iter(rtp_matches), None)
+
+            if fzf_bin:
                 self.__initialized = True
+                self.__fzf_bin = fzf_bin
             else:
-                error(self.vim, 'matcher_fzf: bin/fzf' + ext +
-                      ' is not found in your runtimepath.')
+                error(self.vim, 'matcher_fzf: fzf binary not found.')
                 error(self.vim, 'matcher_fzf: You must install/build' +
                       ' fzf.')
                 self.__disabled = True
@@ -50,7 +56,7 @@ class Filter(Base):
         return convert2fuzzy_pattern(input_str)
 
     def _get_fzf_result(self, candidates, pattern, encoding):
-        proc = Popen(['fzf', '+s', '-f', pattern], stdin=PIPE, stdout=PIPE,
+        proc = Popen([self.__fzf_bin, '+s', '-f', pattern], stdin=PIPE, stdout=PIPE,
                      stderr=PIPE)
         (stdout, stderr) = proc.communicate(
             '\n'.join([d['word'] for d in candidates]).encode(encoding))
